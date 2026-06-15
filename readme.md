@@ -6,7 +6,7 @@ Typhon executes untrusted code inside isolated Docker containers while enforcing
 
 Repository:
 
-https://github.com/lohithreddym4/Typhon
+<https://github.com/lohithreddym4/Typhon>
 
 ---
 
@@ -78,7 +78,7 @@ pip install -r requirements.txt
 ### Build Python Sandbox
 
 ```bash
-docker build -t fedjudge-python ./sandboxes/python
+docker build -t typhon-python ./sandboxes/python
 ```
 
 ### Run API

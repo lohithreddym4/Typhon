@@ -15,7 +15,7 @@ class DockerExecutor:
             "--pids-limit", "64",
             "-i",
             "-v", f"{code_path}:/sandbox/main.py:ro",
-            "fedjudge-python",
+            "typhon-python",
             "python",
             "/sandbox/main.py"
         ]

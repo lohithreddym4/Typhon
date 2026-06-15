@@ -5,7 +5,7 @@ from dataclasses import dataclass
 class ExecutionConfig:
     timeout_seconds: int = 100
     max_output_size: int = 10000
-    temp_dir: str = "/tmp/fedjudge"
+    temp_dir: str = "/tmp/typhon"
 
 
 CONFIG = ExecutionConfig()
