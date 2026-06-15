@@ -3,7 +3,13 @@ import subprocess
 
 class DockerExecutor:
 
-    def run_python(self, code_path: str,stdin: str = "") -> subprocess.CompletedProcess | None:
+    def run(
+        self,
+        image: str,
+        code_path: str,
+        run_command: list[str],
+        stdin: str = ""
+    ):
 
         command = [
             "docker",
@@ -15,19 +21,18 @@ class DockerExecutor:
             "--pids-limit", "64",
             "-i",
             "-v", f"{code_path}:/sandbox/main.py:ro",
-            "typhon-python",
-            "python",
-            "/sandbox/main.py"
+            image,
+            *run_command
         ]
 
         try:
 
             return subprocess.run(
                 command,
+                input=stdin,
                 capture_output=True,
                 text=True,
-                timeout=5,
-                input=stdin
+                timeout=5
             )
 
         except subprocess.TimeoutExpired:

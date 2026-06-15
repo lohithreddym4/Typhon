@@ -1,13 +1,10 @@
-from app.languages.python_runner import PythonRunner
 from fastapi import HTTPException
 
+from app.languages.registry import LANGUAGES
+from app.languages.container_runner import ContainerRunner
+
+
 class Executor:
-
-    def __init__(self):
-
-        self.runners = {
-            "python": PythonRunner()
-        }
 
     def execute(
         self,
@@ -15,13 +12,17 @@ class Executor:
         code: str,
         stdin: str = ""
     ):
-        runner = self.runners.get(language)
 
-        if not runner:
+        config = LANGUAGES.get(language)
+
+        if not config:
+
             raise HTTPException(
-            status_code=400,
-            detail=f"Unsupported language: {language}"
+                status_code=400,
+                detail=f"Unsupported language: {language}"
             )
+
+        runner = ContainerRunner(config)
 
         return runner.execute(
             code=code,
