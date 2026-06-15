@@ -128,3 +128,5 @@ class JudgeSubmission(BaseModel):
     completed_at: datetime | None = None
     
     result: JudgeResult | None = None
+    
+    stderr: str = ""

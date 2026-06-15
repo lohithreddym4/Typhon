@@ -3,7 +3,7 @@ from uuid import uuid4
 from app.models import JudgeSubmission
 from app.submission_status import SubmissionStatus
 from app.judge_submission_store import JUDGE_SUBMISSIONS
-from datetime import datetime
+from datetime import datetime,UTC
 from app.judge_submission_entity import (JudgeSubmissionEntity)
 from app.repositories.judge_submission_repository import (
     JudgeSubmissionRepository
@@ -12,6 +12,7 @@ from app.repositories.judge_submission_repository import (
 repository = (
     JudgeSubmissionRepository()
 )
+
 
 class JudgeSubmissionService:
 
@@ -74,7 +75,7 @@ class JudgeSubmissionService:
         submission.status = (
             SubmissionStatus.RUNNING
         )
-        submission.started_at = datetime.utcnow()
+        submission.started_at = datetime.now(UTC)
         entity = repository.get(submission_id)
 
         entity.status = (
@@ -101,7 +102,7 @@ class JudgeSubmissionService:
             SubmissionStatus.COMPLETED
         )
 
-        submission.completed_at = datetime.utcnow()
+        submission.completed_at = datetime.now(UTC)
 
         submission.result = result
         entity = repository.get(
@@ -145,6 +146,9 @@ class JudgeSubmissionService:
             f"[FAILED] {submission_id}"
         )
         print(error)
+        entity=repository.get(
+            submission_id
+        )
         entity.status = (
             SubmissionStatus.FAILED.value
         )

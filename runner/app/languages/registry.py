@@ -17,23 +17,37 @@ LANGUAGES = {
         name="java",
         file_extension=".java",
         image="typhon-java",
-        run_command=[
-            "bash",
-            "-c",
-            "javac /sandbox/Main.java && java -cp /sandbox Main"
+    
+        compile_command=[
+            "javac",
+            "/sandbox/Main.java"
         ],
+    
+        run_command=[
+            "java",
+            "-cp",
+            "/sandbox",
+            "Main"
+        ],
+    
         container_path="/sandbox/Main.java"
     ),
     "cpp": LanguageConfig(
         name="cpp",
         file_extension=".cpp",
         image="typhon-cpp",
-        run_command=[
-            "bash",
-            "-c",
-            "g++ /sandbox/main.cpp -o /sandbox/main && /sandbox/main"
+    
+        compile_command=[
+            "g++",
+            "/sandbox/main.cpp",
+            "-o",
+            "/sandbox/main"
         ],
+    
+        run_command=[
+            "/sandbox/main"
+        ],
+    
         container_path="/sandbox/main.cpp"
     )
-
 }
