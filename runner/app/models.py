@@ -1,9 +1,10 @@
 from pydantic import BaseModel
 from uuid import uuid4
-
+from pydantic import Field
 from pydantic import BaseModel
 from app.verdict import Verdict
 from app.submission_status import SubmissionStatus
+from datetime import datetime,UTC
 
 
 class ExecuteRequest(BaseModel):
@@ -53,7 +54,6 @@ class Submission(BaseModel):
     timed_out: bool = False
 
     elapsed_time_ms: float | None = None
-
 
 
 class TestCase(BaseModel):
@@ -106,3 +106,25 @@ class JudgeResult(BaseModel):
     execution_time_ms: float
 
     results: list[TestCaseResult]
+
+class JudgeSubmission(BaseModel):
+
+    id: str
+
+    language: str
+
+    code: str
+
+    test_cases: list[TestCase]
+
+    stop_on_failure: bool = False
+
+    status: SubmissionStatus = SubmissionStatus.QUEUED
+    
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    
+    started_at: datetime | None = None
+    
+    completed_at: datetime | None = None
+    
+    result: JudgeResult | None = None
