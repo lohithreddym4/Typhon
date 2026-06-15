@@ -6,9 +6,11 @@ class DockerExecutor:
     def run(
         self,
         image: str,
-        code_path: str,
-        run_command: list[str],
-        stdin: str = ""
+        source_path: str,
+        container_path: str,
+        command_to_run: list[str],
+        stdin: str = "",
+        timeout_seconds: int = 5
     ):
 
         command = [
@@ -20,9 +22,10 @@ class DockerExecutor:
             "--cpus", "1",
             "--pids-limit", "64",
             "-i",
-            "-v", f"{code_path}:/sandbox/main.py:ro",
+            "-v",
+            f"{source_path}:{container_path}:ro",
             image,
-            *run_command
+            *command_to_run
         ]
 
         try:
@@ -32,7 +35,7 @@ class DockerExecutor:
                 input=stdin,
                 capture_output=True,
                 text=True,
-                timeout=5
+                timeout=timeout_seconds
             )
 
         except subprocess.TimeoutExpired:

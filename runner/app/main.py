@@ -8,6 +8,7 @@ from app.queue_manager import submission_queue
 from contextlib import asynccontextmanager
 import threading
 from app.worker import start_worker
+from app.languages.registry import LANGUAGES
 
 
 from app.executor import Executor
@@ -84,3 +85,8 @@ def get_submission(
         )
 
     return submission
+
+@app.get("/languages")
+def get_languages():
+
+    return list(LANGUAGES.keys())

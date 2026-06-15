@@ -13,3 +13,4 @@ class LanguageConfig:
     run_command: list[str]
 
     compile_command: list[str] | None = None
+    container_path: str = "/sandbox/code"

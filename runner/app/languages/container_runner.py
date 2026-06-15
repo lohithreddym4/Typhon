@@ -14,11 +14,7 @@ class ContainerRunner:
 
         self.executor = DockerExecutor()
 
-    def execute(
-        self,
-        code: str,
-        stdin: str = ""
-    ):
+    def execute(self, code: str, stdin: str = ""):
 
         with tempfile.NamedTemporaryFile(
             mode="w",
@@ -36,8 +32,9 @@ class ContainerRunner:
 
             result = self.executor.run(
                 image=self.config.image,
-                code_path=file_path,
-                run_command=self.config.run_command,
+                source_path=file_path,
+                command_to_run=self.config.run_command,
+                container_path=self.config.container_path,
                 stdin=stdin
             )
 
