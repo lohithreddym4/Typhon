@@ -15,13 +15,6 @@ class Executor:
         code: str,
         stdin: str = ""
     ):
-
-        # runner = self.runners.get(language)
-
-        # if not runner:
-        #     raise ValueError(
-        #         f"Unsupported language: {language}"
-        #     )
         runner = self.runners.get(language)
 
         if not runner:

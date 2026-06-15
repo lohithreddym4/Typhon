@@ -14,6 +14,15 @@ class ExecutionResult(BaseModel):
     timed_out: bool
     elapsed_time_ms: float
 
+from dataclasses import dataclass
+
+
+@dataclass
+class DockerExecutionResult:
+    stdout: str
+    stderr: str
+    returncode: int
+    timed_out: bool
 
 class ErrorResponse(BaseModel):
     error: str

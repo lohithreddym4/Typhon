@@ -1,14 +1,16 @@
+import tempfile
 import os
 import time
-import tempfile
-import subprocess
 
-from app.config import CONFIG
-from app.languages.base_runner import BaseRunner
+from app.executors.docker_executor import DockerExecutor
 from app.models import ExecutionResult
+from app.languages.base_runner import BaseRunner
 
 
 class PythonRunner(BaseRunner):
+
+    def __init__(self):
+        self.executor = DockerExecutor()
 
     def execute(self, code: str, stdin: str = ""):
 
@@ -19,40 +21,39 @@ class PythonRunner(BaseRunner):
         ) as file:
 
             file.write(code)
-            file_path = file.name
+            file_path = os.path.abspath(file.name)
+
+        start = time.perf_counter()
 
         try:
 
-            start = time.perf_counter()
-
-            result = subprocess.run(
-                ["python", file_path],
-                input=stdin,
-                capture_output=True,
-                text=True,
-                timeout=CONFIG.timeout_seconds
+            result = self.executor.run_python(
+                file_path,
+                stdin
             )
 
-            elapsed = (time.perf_counter() - start) * 1000
+            elapsed = (
+                time.perf_counter() - start
+            ) * 1000
+
+            if result is None:
+                return ExecutionResult(
+                    stdout="",
+                    stderr="Execution timed out",
+                    exit_code=-1,
+                    timed_out=True,
+                    elapsed_time_ms=round(elapsed, 2)
+                )
 
             return ExecutionResult(
-                stdout=result.stdout[:CONFIG.max_output_size],
-                stderr=result.stderr[:CONFIG.max_output_size],
+                stdout=result.stdout,
+                stderr=result.stderr,
                 exit_code=result.returncode,
                 timed_out=False,
                 elapsed_time_ms=round(elapsed, 2)
             )
 
-        except subprocess.TimeoutExpired:
-
-            return ExecutionResult(
-                stdout="",
-                stderr="Execution timed out",
-                exit_code=-1,
-                timed_out=True,
-                elapsed_time_ms=CONFIG.timeout_seconds * 1000
-            )
-
         finally:
+
             if os.path.exists(file_path):
                 os.remove(file_path)
