@@ -1,4 +1,9 @@
 from pydantic import BaseModel
+from uuid import uuid4
+
+from pydantic import BaseModel
+
+from app.submission_status import SubmissionStatus
 
 
 class ExecuteRequest(BaseModel):
@@ -26,3 +31,25 @@ class DockerExecutionResult:
 
 class ErrorResponse(BaseModel):
     error: str
+
+class Submission(BaseModel):
+
+    id: str
+
+    language: str
+
+    code: str
+
+    stdin: str
+
+    status: SubmissionStatus
+
+    stdout: str = ""
+
+    stderr: str = ""
+
+    exit_code: int | None = None
+
+    timed_out: bool = False
+
+    elapsed_time_ms: float | None = None
