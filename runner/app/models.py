@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from uuid import uuid4
 
 from pydantic import BaseModel
-
+from app.verdict import Verdict
 from app.submission_status import SubmissionStatus
 
 
@@ -53,3 +53,54 @@ class Submission(BaseModel):
     timed_out: bool = False
 
     elapsed_time_ms: float | None = None
+
+
+
+class TestCase(BaseModel):
+
+    input: str
+
+    expected_output: str
+
+    hidden: bool = False
+
+
+class JudgeRequest(BaseModel):
+
+    language: str
+
+    code: str
+
+    test_cases: list[TestCase]
+
+
+
+class TestCaseResult(BaseModel):
+
+    testcase_number: int
+
+    verdict: Verdict
+
+    execution_time_ms: float
+
+    passed: bool
+
+    hidden: bool
+
+    actual_output: str | None = None
+
+    expected_output: str | None = None
+
+class JudgeResult(BaseModel):
+
+    verdict: Verdict
+
+    total: int
+
+    passed: int
+
+    failed: int
+
+    execution_time_ms: float
+
+    results: list[TestCaseResult]
