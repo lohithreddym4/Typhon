@@ -2,48 +2,103 @@
 
 A secure, container-based code execution engine built with FastAPI and Docker.
 
-Typhon executes untrusted code inside isolated Docker containers while enforcing strict resource limits and security controls.
-
-Repository:
-
-<https://github.com/lohithreddym4/Typhon>
-
----
+Typhon executes untrusted code inside isolated Docker containers with resource limits, submission lifecycle management, and multi-language support.
 
 ## Features
 
-* Python code execution
-* Docker sandboxing
-* Standard input (stdin) support
-* Execution timeouts
-* Network isolation
+### Supported Languages
+
+* Python 3
+* Java 21
+
+### Security
+
+* Docker-based sandboxing
+* Network isolation (`--network none`)
 * Memory limits
+* CPU limits
 * PID limits
-* Filesystem isolation
-* Language abstraction architecture
-* Execution metrics
+* Non-root execution
+* Automatic container cleanup
+
+### Execution Engine
+
+* Submission Queue
+* Background Worker
+* Status Tracking
+* Execution Time Measurement
+* Standard Input (stdin) Support
 
 ---
 
-## Why Typhon?
+# Architecture
 
-Most online judges focus on execution.
+```text
+Client
+  │
+  ▼
+POST /submissions
+  │
+  ▼
+Submission Service
+  │
+  ▼
+Queue
+  │
+  ▼
+Worker
+  │
+  ▼
+Executor
+  │
+  ▼
+Language Runner
+  │
+  ▼
+Docker Sandbox
+```
 
-Typhon focuses on execution **and isolation**.
+Submission lifecycle:
 
-Every submission runs inside its own temporary container with:
+```text
+QUEUED
+   ↓
+RUNNING
+   ↓
+COMPLETED
+```
 
-* No internet access
-* Limited memory
-* Limited CPU resources
-* Limited process creation
-* Automatic cleanup
+or
+
+```text
+QUEUED
+   ↓
+RUNNING
+   ↓
+FAILED
+```
 
 ---
 
-## Quick Start
+# Requirements
 
-### Clone
+Install:
+
+* Python 3.11+
+* Docker Desktop
+* Git
+
+Verify installation:
+
+```bash
+python --version
+docker --version
+git --version
+```
+
+---
+
+# Clone Repository
 
 ```bash
 git clone https://github.com/lohithreddym4/Typhon.git
@@ -51,7 +106,9 @@ git clone https://github.com/lohithreddym4/Typhon.git
 cd Typhon/runner
 ```
 
-### Create Virtual Environment
+---
+
+# Create Virtual Environment
 
 Windows:
 
@@ -69,25 +126,60 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-### Install Dependencies
+---
+
+# Install Dependencies
 
 ```bash
 pip install -r requirements.txt
 ```
 
-### Build Python Sandbox
+---
+
+# Build Sandbox Images
+
+## Python
 
 ```bash
 docker build -t typhon-python ./sandboxes/python
 ```
 
-### Run API
+## Java
+
+```bash
+docker build -t typhon-java ./sandboxes/java
+```
+
+Verify:
+
+```bash
+docker images
+```
+
+Expected:
+
+```text
+typhon-python
+typhon-java
+```
+
+---
+
+# Run Typhon
+
+Start the FastAPI server:
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-Swagger UI:
+API:
+
+```text
+http://localhost:8000
+```
+
+Swagger Documentation:
 
 ```text
 http://localhost:8000/docs
@@ -95,7 +187,15 @@ http://localhost:8000/docs
 
 ---
 
-## Example Request
+# Create Submission
+
+Endpoint:
+
+```http
+POST /submissions
+```
+
+Example:
 
 ```json
 {
@@ -108,72 +208,120 @@ Response:
 
 ```json
 {
-  "stdout": "Hello Typhon\n",
-  "stderr": "",
-  "exit_code": 0,
-  "timed_out": false
+  "id": "f4d86f8e-9d7a-4f90-8f58-5f2c8b4b8d76",
+  "status": "QUEUED"
 }
 ```
 
 ---
 
-## Security Model
+# Check Submission Status
 
-Each submission is executed using:
+Endpoint:
 
-```text
-docker run
-    --rm
-    --network none
-    --memory 128m
-    --cpus 1
-    --pids-limit 64
+```http
+GET /submissions/{id}
 ```
 
-Current protections:
+Example Response:
 
-* Network isolation
-* Memory exhaustion protection
-* Infinite loop timeout protection
-* Process explosion protection
-* Non-root execution
-* Temporary container execution
-
----
-
-## Current Status
-
-### Sprint 1
-
-* Python execution
-* stdin support
-* timeout support
-* execution metrics
-
-### Sprint 2
-
-* Dockerized execution
-* network isolation
-* memory limits
-* PID limits
-* filesystem isolation
-
-### Sprint 3 (Next)
-
-* Java runner
-* Java compilation
-* Java sandbox image
+```json
+{
+  "id": "f4d86f8e-9d7a-4f90-8f58-5f2c8b4b8d76",
+  "language": "python",
+  "code": "print('Hello Typhon')",
+  "stdin": "",
+  "status": "COMPLETED",
+  "stdout": "Hello Typhon\n",
+  "stderr": "",
+  "exit_code": 0,
+  "timed_out": false,
+  "elapsed_time_ms": 734.21
+}
+```
 
 ---
 
-## Vision
+# Python Example
 
-Typhon aims to become a language-agnostic execution platform for:
+Request:
 
-* Coding assessment systems
-* Online IDEs
-* Learning platforms
-* Competitive programming platforms
-* AI-powered coding products
+```json
+{
+  "language": "python",
+  "code": "name=input()\nprint(f'Hello {name}')",
+  "stdin": "Lohith"
+}
+```
 
-Execute Anything. Contain Everything.
+Output:
+
+```text
+Hello Lohith
+```
+
+---
+
+# Java Example
+
+Request:
+
+```json
+{
+  "language": "java",
+  "code": "import java.util.*; public class Main { public static void main(String[] args) { Scanner sc = new Scanner(System.in); System.out.println(\"Hello \" + sc.nextLine()); } }",
+  "stdin": "Lohith"
+}
+```
+
+Output:
+
+```text
+Hello Lohith
+```
+
+---
+
+# Security Model
+
+Each submission runs in its own isolated container.
+
+Current Docker restrictions:
+
+```text
+--network none
+--memory 128m
+--cpus 1
+--pids-limit 64
+```
+
+This protects against:
+
+* Internet access
+* Memory exhaustion attacks
+* Infinite process spawning
+* Long-running programs
+
+---
+
+# Current Version
+
+Typhon v0.3.0
+
+Capabilities:
+
+* Multi-language execution
+* Docker sandboxing
+* Submission queue
+* Background worker
+* Status tracking
+* Python support
+* Java support
+
+---
+
+Built from frustration with Judge0.
+
+Typhon's goal is simple:
+
+**Execute anything. Contain everything.**
