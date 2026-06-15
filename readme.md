@@ -138,17 +138,12 @@ pip install -r requirements.txt
 
 # Build Sandbox Images
 
-## Python
+## All languages
 
 ```bash
-docker build -t typhon-python ./sandboxes/python
+python scripts/build_sandboxes.py
 ```
 
-## Java
-
-```bash
-docker build -t typhon-java ./sandboxes/java
-```
 
 Verify:
 
