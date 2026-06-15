@@ -18,7 +18,8 @@ class JudgeService:
         self,
         language: str,
         code: str,
-        test_cases
+        test_cases,
+        stop_on_failure=False
     ):
 
         results = []
@@ -69,11 +70,30 @@ class JudgeService:
                 verdict == Verdict.ACCEPTED
             )
 
-            if passed:
-                passed_count += 1
-
             actual_to_return = actual_output
             expected_to_return = expected_output
+
+            if passed:
+                passed_count += 1
+            # elif stop_on_failure:
+
+            #     results.append(
+            #         TestCaseResult(
+            #             testcase_number=index + 1,
+            #             verdict=verdict,
+            #             execution_time_ms=round(
+            #                 testcase_elapsed,
+            #                 2
+            #             ),
+            #             passed=False,
+            #             hidden=test_case.hidden,
+            #             actual_output=actual_to_return,
+            #             expected_output=expected_to_return
+            #         )
+
+            #     )
+
+            #     break
 
             if test_case.hidden:
 
@@ -96,6 +116,8 @@ class JudgeService:
                 )
 
             )
+            if not passed and stop_on_failure:
+                break
 
         overall_verdict = Verdict.ACCEPTED
 
@@ -115,11 +137,11 @@ class JudgeService:
 
             verdict=overall_verdict,
 
-            total=len(test_cases),
+            total=len(results),
 
             passed=passed_count,
 
-            failed=len(test_cases) - passed_count,
+            failed=len(results) - passed_count,
 
             execution_time_ms=round(
                 judge_elapsed,

@@ -107,5 +107,6 @@ def judge(
     return judge_service.judge(
         language=request.language,
         code=request.code,
-        test_cases=request.test_cases
+        test_cases=request.test_cases,
+        stop_on_failure=True
     )

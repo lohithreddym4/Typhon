@@ -73,6 +73,8 @@ class JudgeRequest(BaseModel):
 
     test_cases: list[TestCase]
 
+    stop_on_failure: bool = False
+
 
 
 class TestCaseResult(BaseModel):
