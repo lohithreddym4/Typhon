@@ -10,9 +10,13 @@ from contextlib import asynccontextmanager
 import threading
 from app.worker import start_worker
 from app.judge_worker import start_judge_worker
+from app.db import engine, Base
 from app.languages.registry import LANGUAGES
 from app.models import (
     JudgeRequest
+)
+from app.judge_submission_entity import (
+    JudgeSubmissionEntity
 )
 from app.judge_queue_manager import judge_queue
 
@@ -25,6 +29,7 @@ judge_service = JudgeService()
 
 @asynccontextmanager
 async def lifespan(app):
+    Base.metadata.create_all(bind=engine)
 
     worker_thread = threading.Thread(
         target=start_worker,

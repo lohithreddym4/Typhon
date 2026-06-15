@@ -4,7 +4,14 @@ from app.models import JudgeSubmission
 from app.submission_status import SubmissionStatus
 from app.judge_submission_store import JUDGE_SUBMISSIONS
 from datetime import datetime
+from app.judge_submission_entity import (JudgeSubmissionEntity)
+from app.repositories.judge_submission_repository import (
+    JudgeSubmissionRepository
+)
 
+repository = (
+    JudgeSubmissionRepository()
+)
 
 class JudgeSubmissionService:
 
@@ -22,7 +29,16 @@ class JudgeSubmissionService:
             test_cases=test_cases,
             stop_on_failure=stop_on_failure,
         )
+        entity = JudgeSubmissionEntity(
+            id=submission.id,
+            language=submission.language,
+            code=submission.code,
+            status=submission.status.value,
+            stop_on_failure=submission.stop_on_failure,
+            created_at=submission.created_at
+        )
 
+        repository.save(entity)
         JUDGE_SUBMISSIONS[submission.id] = submission
 
         print(
@@ -59,6 +75,17 @@ class JudgeSubmissionService:
             SubmissionStatus.RUNNING
         )
         submission.started_at = datetime.utcnow()
+        entity = repository.get(submission_id)
+
+        entity.status = (
+            SubmissionStatus.RUNNING.value
+        )
+
+        entity.started_at = (
+            submission.started_at
+        )
+
+        repository.update(entity)
 
         return submission
     def mark_completed(
@@ -77,6 +104,23 @@ class JudgeSubmissionService:
         submission.completed_at = datetime.utcnow()
 
         submission.result = result
+        entity = repository.get(
+            submission_id
+        )
+
+        entity.status = (
+            SubmissionStatus.COMPLETED.value
+        )
+
+        entity.completed_at = (
+            submission.completed_at
+        )
+
+        entity.result_json = (
+            submission.result.model_dump_json()
+        )
+
+        repository.update(entity)
 
 
 
@@ -101,5 +145,10 @@ class JudgeSubmissionService:
             f"[FAILED] {submission_id}"
         )
         print(error)
+        entity.status = (
+            SubmissionStatus.FAILED.value
+        )
+
+        repository.update(entity)
 
         return submission
