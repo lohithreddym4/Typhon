@@ -24,5 +24,16 @@ LANGUAGES = {
         ],
         container_path="/sandbox/Main.java"
     ),
+    "cpp": LanguageConfig(
+        name="cpp",
+        file_extension=".cpp",
+        image="typhon-cpp",
+        run_command=[
+            "bash",
+            "-c",
+            "g++ /sandbox/main.cpp -o /sandbox/main && /sandbox/main"
+        ],
+        container_path="/sandbox/main.cpp"
+    )
 
 }
