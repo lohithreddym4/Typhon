@@ -120,13 +120,26 @@ class JudgeSubmission(BaseModel):
     stop_on_failure: bool = False
 
     status: SubmissionStatus = SubmissionStatus.QUEUED
-    
+
     created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    
+
     started_at: datetime | None = None
-    
+
     completed_at: datetime | None = None
-    
+
     result: JudgeResult | None = None
-    
+
     stderr: str = ""
+
+
+class FunctionTestCase(BaseModel):
+    args: list
+    expected_output: str
+    hidden: bool = False
+
+class FunctionJudgeRequest(BaseModel):
+    language: str
+    code: str
+    function_name: str
+    test_cases: list[FunctionTestCase]
+    stop_on_failure: bool = False

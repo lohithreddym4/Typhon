@@ -13,10 +13,13 @@ from app.judge_worker import start_judge_worker
 from app.db import engine, Base
 from app.languages.registry import LANGUAGES
 from app.models import (
-    JudgeRequest
+    JudgeRequest,FunctionJudgeRequest
 )
 from app.judge_submission_entity import (
     JudgeSubmissionEntity
+)
+from app.judge.function_judge_service import (
+    FunctionJudgeService
 )
 from app.judge_queue_manager import judge_queue
 
@@ -25,6 +28,8 @@ from app.executor import Executor
 from app.judge_service import JudgeService
 
 judge_service = JudgeService()
+
+judge_functional_service = FunctionJudgeService()
 
 
 @asynccontextmanager
@@ -162,5 +167,24 @@ def get_judge_submission(
     return (
         judge_submission_service.get(
             submission_id
+        )
+    )
+
+@app.post("/judge/function")
+def judge_function(
+    request: FunctionJudgeRequest
+):
+
+    return judge_functional_service.judge(
+        language=request.language,
+        code=request.code,
+        function_name=(
+            request.function_name
+        ),
+        test_cases=(
+            request.test_cases
+        ),
+        stop_on_failure=(
+            request.stop_on_failure
         )
     )

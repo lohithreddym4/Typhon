@@ -47,10 +47,6 @@ def start_judge_worker():
                 )
             )
 
-            # print(
-            #     f"[WORKER] Submission: "
-            #     f"{submission}"
-            # )
 
             if not submission:
 
