@@ -134,7 +134,7 @@ class JudgeSubmission(BaseModel):
 
 class FunctionTestCase(BaseModel):
     args: list
-    expected_output: str
+    expected_output: object
     hidden: bool = False
 
 class FunctionJudgeRequest(BaseModel):

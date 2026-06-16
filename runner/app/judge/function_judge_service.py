@@ -100,10 +100,6 @@ class FunctionJudgeService:
                 raw_results
             )
         ):
-            
-            print(type(result["actual"]))
-            print(type(test_case.expected_output))
-            print(result["actual"]==test_case.expected_output)
 
             if not result["success"]:
 

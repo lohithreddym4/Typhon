@@ -14,16 +14,6 @@ judge_service = JudgeService()
 
 def start_judge_worker():
 
-    print(
-        "================================="
-    )
-    print(
-        "Judge worker started"
-    )
-    print(
-        "================================="
-    )
-
     while True:
 
         print(
