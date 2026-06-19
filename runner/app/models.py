@@ -106,6 +106,7 @@ class JudgeResult(BaseModel):
     execution_time_ms: float
 
     results: list[TestCaseResult]
+    stderr: str = ""
 
 class JudgeSubmission(BaseModel):
 
@@ -136,6 +137,7 @@ class FunctionTestCase(BaseModel):
     args: list
     expected_output: object
     hidden: bool = False
+    arg_types: list[str] | None = None
 
 class FunctionJudgeRequest(BaseModel):
     language: str

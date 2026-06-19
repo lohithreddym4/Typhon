@@ -17,16 +17,16 @@ LANGUAGES = {
         name="java",
         file_extension=".java",
         image="typhon-java",
-    
         compile_command=[
             "javac",
+            "-cp",
+            "/libs/gson.jar",
             "/sandbox/Main.java"
         ],
-    
         run_command=[
             "java",
             "-cp",
-            "/sandbox",
+            "/sandbox:/libs/gson.jar",
             "Main"
         ],
     

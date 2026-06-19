@@ -10,6 +10,8 @@ from app.models import (
 )
 
 from app.verdict import Verdict
+from app.judge.java_build_runner import JavaBuildRunner
+from app.judge.python_build_runner import PythonBuildRunner
 
 
 class FunctionJudgeService:
@@ -22,17 +24,23 @@ class FunctionJudgeService:
         test_cases,
         stop_on_failure=False
     ):
+        self.python_build_runner = PythonBuildRunner().build
+        self.java_build_runner = JavaBuildRunner().build
 
-        if language != "python":
+        builders = {
+            "python": self.python_build_runner,
+            "java": self.java_build_runner
+        }
 
-            raise ValueError(
-                "Function judge currently supports only Python"
-            )
+        builder = builders.get(language)
 
-        runner_code = self._build_runner(
-            code=code,
-            function_name=function_name,
-            test_cases=test_cases
+        if not builder:
+            raise ValueError(...)
+
+        runner_code = builder(
+            code,
+            function_name,
+            test_cases
         )
 
         config = LANGUAGES[language]
@@ -41,11 +49,21 @@ class FunctionJudgeService:
 
         judge_start = time.perf_counter()
 
-        runner.start(runner_code)
 
         try:
-
+            runner.start(runner_code)
             execution = runner.execute()
+        except RuntimeError as e:
+
+            return JudgeResult(
+                verdict=Verdict.COMPILATION_ERROR,
+                total=len(test_cases),
+                passed=0,
+                failed=len(test_cases),
+                execution_time_ms=0,
+                results=[],
+                stderr=str(e)
+            )
 
         finally:
 
@@ -70,9 +88,10 @@ class FunctionJudgeService:
             )
 
         if execution.exit_code != 0:
-
+            print(execution.stderr)
             return JudgeResult(
                 verdict=Verdict.RUNTIME_ERROR,
+                stderr=execution.stderr,
                 total=len(test_cases),
                 passed=0,
                 failed=len(test_cases),
@@ -212,63 +231,3 @@ class FunctionJudgeService:
             ),
             results=results
         )
-
-    def _build_runner(
-        self,
-        code,
-        function_name,
-        test_cases
-    ):
-
-        test_data = [
-
-            {
-                "args": tc.args
-            }
-
-            for tc in test_cases
-
-        ]
-
-        return f"""
-import json
-
-{code}
-
-tests = {json.dumps(test_data)}
-
-solution = Solution()
-
-results = []
-
-for test in tests:
-
-    try:
-
-        actual = getattr(
-            solution,
-            "{function_name}"
-        )(
-            *test["args"]
-        )
-
-        results.append(
-            {{
-                "success": True,
-                "actual": actual
-            }}
-        )
-
-    except Exception as e:
-
-        results.append(
-            {{
-                "success": False,
-                "error": str(e)
-            }}
-        )
-
-print(
-    json.dumps(results)
-)
-"""

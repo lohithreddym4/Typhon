@@ -1,88 +1,231 @@
 # Typhon
 
-A secure, container-based code execution engine built with FastAPI and Docker.
+Typhon is a secure, container-based online judge engine built with FastAPI and Docker.
 
-Typhon executes untrusted code inside isolated Docker containers with resource limits, submission lifecycle management, and multi-language support.
+Unlike traditional code execution services, Typhon is designed to evaluate user submissions against test cases, generate verdicts, and support complex language-specific structures such as TreeNode, ListNode, custom objects, collections, and overloaded methods.
+
+Built from frustration with Judge0.
+
+**Execute anything. Judge everything.**
+
+---
 
 ## Features
 
-### Supported Languages
+### Languages
+
+Currently supported:
 
 * Python 3
 * Java 21
 
-### Security
-
-* Docker-based sandboxing
-* Network isolation (`--network none`)
-* Memory limits
-* CPU limits
-* PID limits
-* Non-root execution
-* Automatic container cleanup
-
-### Execution Engine
-
-* Submission Queue
-* Background Worker
-* Status Tracking
-* Execution Time Measurement
-* Standard Input (stdin) Support
+Additional languages can be added through Typhon's language registry.
 
 ---
 
-# Architecture
+## Judge Engine
+
+Typhon supports function-based judging similar to LeetCode and HackerRank.
+
+Features:
+
+* Multiple test cases per submission
+* Single execution for all test cases
+* Verdict generation
+* Execution time measurement
+* Hidden test cases
+* Stop-on-failure mode
+* Runtime error detection
+* Compilation error detection
+* Time limit exceeded detection
+
+Supported verdicts:
+
+* ACCEPTED
+* WRONG_ANSWER
+* RUNTIME_ERROR
+* COMPILATION_ERROR
+* TIME_LIMIT_EXCEEDED
+
+---
+
+## Advanced Java Support
+
+Typhon automatically handles:
+
+### Primitive Types
+
+* int
+* long
+* double
+* float
+* boolean
+* char
+* String
+
+### Arrays
+
+* int[]
+* long[]
+* String[]
+* int[][]
+* nested arrays
+
+### Collections
+
+* List<T>
+* Set<T>
+* Map<K,V>
+* Nested collections
+
+Examples:
+
+```java
+List<Integer>
+List<List<Integer>>
+Map<String,Integer>
+Set<Long>
+```
+
+### Linked Structures
+
+Typhon automatically serializes and deserializes:
+
+```java
+ListNode
+TreeNode
+```
+
+Examples:
+
+```text
+[1,2,3,4]
+```
+
+→ ListNode
+
+```text
+[1,null,2,3]
+```
+
+→ TreeNode
+
+### Custom Objects
+
+Example:
+
+```java
+class Point {
+    int x;
+    int y;
+}
+```
+
+Input:
+
+```json
+{
+  "x": 3,
+  "y": 4
+}
+```
+
+Output:
+
+```json
+{
+  "x": 3,
+  "y": 4
+}
+```
+
+### Method Overloading
+
+Typhon supports overloaded methods through explicit type hints.
+
+Example:
+
+```java
+int add(int a, int b)
+
+String add(String a, String b)
+```
+
+---
+
+## Python Support
+
+Typhon supports:
+
+### Function Style
+
+```python
+def square(n):
+    return n * n
+```
+
+### Solution Class Style
+
+```python
+class Solution:
+
+    def square(self, n):
+        return n * n
+```
+
+---
+
+## Security
+
+Every execution runs inside an isolated Docker container.
+
+Sandbox restrictions:
+
+```text
+--network none
+--memory 256m
+--cpus 1
+```
+
+Security guarantees:
+
+* Network isolation
+* Resource limits
+* Container cleanup
+* Process isolation
+* Untrusted code execution
+
+---
+
+## Architecture
 
 ```text
 Client
   │
   ▼
-POST /submissions
+Judge API
   │
   ▼
-Submission Service
-  │
-  ▼
-Queue
-  │
-  ▼
-Worker
-  │
-  ▼
-Executor
+Build Runner
   │
   ▼
 Language Runner
   │
   ▼
 Docker Sandbox
-```
-
-Submission lifecycle:
-
-```text
-QUEUED
-   ↓
-RUNNING
-   ↓
-COMPLETED
-```
-
-or
-
-```text
-QUEUED
-   ↓
-RUNNING
-   ↓
-FAILED
+  │
+  ▼
+Result Parser
+  │
+  ▼
+Verdict Generator
 ```
 
 ---
 
-# Requirements
+## Installation
 
-Install:
+### Requirements
 
 * Python 3.11+
 * Docker Desktop
@@ -98,7 +241,7 @@ git --version
 
 ---
 
-# Clone Repository
+### Clone Repository
 
 ```bash
 git clone https://github.com/lohithreddym4/Typhon.git
@@ -108,7 +251,7 @@ cd Typhon/runner
 
 ---
 
-# Create Virtual Environment
+### Create Virtual Environment
 
 Windows:
 
@@ -128,7 +271,7 @@ source .venv/bin/activate
 
 ---
 
-# Install Dependencies
+### Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -136,14 +279,11 @@ pip install -r requirements.txt
 
 ---
 
-# Build Sandbox Images
-
-## All languages
+### Build Sandbox Images
 
 ```bash
 python scripts/build_sandboxes.py
 ```
-
 
 Verify:
 
@@ -160,21 +300,13 @@ typhon-java
 
 ---
 
-# Run Typhon
-
-Start the FastAPI server:
+### Run Typhon
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-API:
-
-```text
-http://localhost:8000
-```
-
-Swagger Documentation:
+Swagger:
 
 ```text
 http://localhost:8000/docs
@@ -182,12 +314,12 @@ http://localhost:8000/docs
 
 ---
 
-# Create Submission
+## Function Judge Example
 
 Endpoint:
 
 ```http
-POST /submissions
+POST /judge/function
 ```
 
 Example:
@@ -195,7 +327,14 @@ Example:
 ```json
 {
   "language": "python",
-  "code": "print('Hello Typhon')"
+  "function_name": "square",
+  "code": "def square(n): return n*n",
+  "test_cases": [
+    {
+      "args": [5],
+      "expected_output": 25
+    }
+  ]
 }
 ```
 
@@ -203,120 +342,59 @@ Response:
 
 ```json
 {
-  "id": "f4d86f8e-9d7a-4f90-8f58-5f2c8b4b8d76",
-  "status": "QUEUED"
+  "verdict": "ACCEPTED",
+  "total": 1,
+  "passed": 1,
+  "failed": 0
 }
 ```
 
 ---
 
-# Check Submission Status
+## Performance
 
-Endpoint:
-
-```http
-GET /submissions/{id}
-```
-
-Example Response:
-
-```json
-{
-  "id": "f4d86f8e-9d7a-4f90-8f58-5f2c8b4b8d76",
-  "language": "python",
-  "code": "print('Hello Typhon')",
-  "stdin": "",
-  "status": "COMPLETED",
-  "stdout": "Hello Typhon\n",
-  "stderr": "",
-  "exit_code": 0,
-  "timed_out": false,
-  "elapsed_time_ms": 734.21
-}
-```
-
----
-
-# Python Example
-
-Request:
-
-```json
-{
-  "language": "python",
-  "code": "name=input()\nprint(f'Hello {name}')",
-  "stdin": "Lohith"
-}
-```
-
-Output:
+Benchmark (local machine):
 
 ```text
-Hello Lohith
+1 testcase      ≈ 3.2s
+10 testcases    ≈ 3.2s
+100 testcases   ≈ 3.2s
+1000 testcases  ≈ 3.4s
 ```
+
+Typhon executes all test cases within a single sandbox execution, minimizing interpreter startup overhead.
 
 ---
 
-# Java Example
+## Current Status
 
-Request:
+Typhon v1.0
 
-```json
-{
-  "language": "java",
-  "code": "import java.util.*; public class Main { public static void main(String[] args) { Scanner sc = new Scanner(System.in); System.out.println(\"Hello \" + sc.nextLine()); } }",
-  "stdin": "Lohith"
-}
-```
+Implemented:
 
-Output:
+* Python Judge
+* Java Judge
+* Docker Sandboxing
+* Function Evaluation
+* Verdict Generation
+* TreeNode Support
+* ListNode Support
+* Custom Objects
+* Collections
+* Overload Resolution
+* Timeout Detection
+* Concurrency Validation
 
-```text
-Hello Lohith
-```
+Future:
 
----
-
-# Security Model
-
-Each submission runs in its own isolated container.
-
-Current Docker restrictions:
-
-```text
---network none
---memory 128m
---cpus 1
---pids-limit 64
-```
-
-This protects against:
-
-* Internet access
-* Memory exhaustion attacks
-* Infinite process spawning
-* Long-running programs
+* Submission Queue
+* Persistent Workers
+* Additional Languages
+* Distributed Execution
+* Contest Support
 
 ---
 
-# Current Version
+Built because online judges should be extensible, language-aware, and easy to own.
 
-Typhon v0.3.0
-
-Capabilities:
-
-* Multi-language execution
-* Docker sandboxing
-* Submission queue
-* Background worker
-* Status tracking
-* Python support
-* Java support
-
----
-
-Built from frustration with Judge0.
-
-Typhon's goal is simple:
-
-**Execute anything. Contain everything.**
+**Execute anything. Judge everything.**
