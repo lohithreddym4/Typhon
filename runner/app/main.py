@@ -26,10 +26,12 @@ from app.judge_queue_manager import judge_queue
 from app.executor import Executor
 
 from app.judge_service import JudgeService
+from fastapi.middleware.cors import CORSMiddleware
 
 judge_service = JudgeService()
 
 judge_functional_service = FunctionJudgeService()
+
 
 
 @asynccontextmanager
@@ -54,10 +56,25 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"
+    ],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 executor = Executor()
 submission_service = SubmissionService()
 judge_submission_service = JudgeSubmissionService()
 
+
+@app.get("/")
+def read_root():
+    return {
+        "message": "Welcome to the Code Runner API. Visit /docs for API documentation."
+    }
 @app.post(
     "/execute",
     response_model=ExecutionResult

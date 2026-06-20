@@ -24,6 +24,7 @@ class FunctionJudgeService:
         test_cases,
         stop_on_failure=False
     ):
+
         self.python_build_runner = PythonBuildRunner().build
         self.java_build_runner = JavaBuildRunner().build
 
@@ -35,7 +36,9 @@ class FunctionJudgeService:
         builder = builders.get(language)
 
         if not builder:
-            raise ValueError(...)
+            raise ValueError(
+                f"Unsupported language: {language}"
+            )
 
         runner_code = builder(
             code,
@@ -49,10 +52,12 @@ class FunctionJudgeService:
 
         judge_start = time.perf_counter()
 
-
         try:
+
             runner.start(runner_code)
+
             execution = runner.execute()
+
         except RuntimeError as e:
 
             return JudgeResult(
@@ -88,7 +93,7 @@ class FunctionJudgeService:
             )
 
         if execution.exit_code != 0:
-            print(execution.stderr)
+
             return JudgeResult(
                 verdict=Verdict.RUNTIME_ERROR,
                 stderr=execution.stderr,
@@ -102,9 +107,86 @@ class FunctionJudgeService:
                 results=[]
             )
 
-        raw_results = json.loads(
-            execution.stdout
-        )
+        print("RAW OUTPUT:")
+
+        stdout = (
+            execution.stdout or ""
+        ).strip()
+
+        if not stdout:
+
+            return JudgeResult(
+                verdict=Verdict.RUNTIME_ERROR,
+                stderr="No output produced by runner",
+                total=len(test_cases),
+                passed=0,
+                failed=len(test_cases),
+                execution_time_ms=round(
+                    judge_elapsed,
+                    2
+                ),
+                results=[]
+            )
+
+        lines = stdout.splitlines()
+
+        json_line = None
+        print(lines)
+
+        for line in reversed(lines):
+
+            stripped = line.strip()
+
+            if (
+                stripped.startswith("[")
+                or stripped.startswith("{")
+            ):
+                json_line = stripped
+                break
+            
+
+        if json_line is None:
+
+            return JudgeResult(
+                verdict=Verdict.RUNTIME_ERROR,
+                stderr=(
+                    "Judge output JSON not found.\n\n"
+                    f"stdout:\n{stdout}"
+                ),
+                total=len(test_cases),
+                passed=0,
+                failed=len(test_cases),
+                execution_time_ms=round(
+                    judge_elapsed,
+                    2
+                ),
+                results=[]
+            )
+
+        try:
+
+            raw_results = json.loads(
+                json_line
+            )
+
+        except Exception as e:
+
+            return JudgeResult(
+                verdict=Verdict.RUNTIME_ERROR,
+                stderr=(
+                    f"Failed to parse judge JSON.\n\n"
+                    f"JSON Line:\n{json_line}\n\n"
+                    f"Error:\n{str(e)}"
+                ),
+                total=len(test_cases),
+                passed=0,
+                failed=len(test_cases),
+                execution_time_ms=round(
+                    judge_elapsed,
+                    2
+                ),
+                results=[]
+            )
 
         results = []
 
@@ -161,6 +243,7 @@ class FunctionJudgeService:
                 passed_count += 1
 
             actual_to_return = actual
+
             expected_to_return = (
                 test_case.expected_output
             )
@@ -178,6 +261,8 @@ class FunctionJudgeService:
                     execution_time_ms=0,
                     passed=passed,
                     hidden=test_case.hidden,
+                    stdout=result.get("stdout", "") or "",
+                    stderr=result.get("stderr", "") or "",
                     actual_output=(
                         str(actual_to_return)
                         if actual_to_return
@@ -198,7 +283,6 @@ class FunctionJudgeService:
                 not passed
                 and stop_on_failure
             ):
-
                 break
 
         overall_verdict = (
@@ -229,5 +313,6 @@ class FunctionJudgeService:
                 judge_elapsed,
                 2
             ),
-            results=results
+            results=results,
+            stderr=""
         )

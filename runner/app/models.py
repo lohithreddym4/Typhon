@@ -93,6 +93,10 @@ class TestCaseResult(BaseModel):
 
     expected_output: str | None = None
 
+    stdout: str = ""
+
+    stderr: str = ""
+
 class JudgeResult(BaseModel):
 
     verdict: Verdict
@@ -106,7 +110,7 @@ class JudgeResult(BaseModel):
     execution_time_ms: float
 
     results: list[TestCaseResult]
-    stderr: str = ""
+
 
 class JudgeSubmission(BaseModel):
 

@@ -19,6 +19,8 @@ class PythonBuildRunner:
 
         return f'''
 import json
+import io
+import contextlib
 
 {code}
 
@@ -62,16 +64,24 @@ except Exception as e:
 
 for test in tests:
 
+    stdout_buffer = io.StringIO()
+    stderr_buffer = io.StringIO()
+
     try:
 
-        actual = callable_fn(
-            *test["args"]
-        )
+        with contextlib.redirect_stdout(stdout_buffer), \\
+             contextlib.redirect_stderr(stderr_buffer):
+
+            actual = callable_fn(
+                *test["args"]
+            )
 
         results.append(
             {{
                 "success": True,
-                "actual": actual
+                "actual": actual,
+                "stdout": stdout_buffer.getvalue(),
+                "stderr": stderr_buffer.getvalue()
             }}
         )
 
@@ -80,7 +90,9 @@ for test in tests:
         results.append(
             {{
                 "success": False,
-                "error": str(e)
+                "error": str(e),
+                "stdout": stdout_buffer.getvalue(),
+                "stderr": stderr_buffer.getvalue()
             }}
         )
 
