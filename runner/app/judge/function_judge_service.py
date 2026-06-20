@@ -107,7 +107,7 @@ class FunctionJudgeService:
                 results=[]
             )
 
-        print("RAW OUTPUT:")
+        # print("RAW OUTPUT:")
 
         stdout = (
             execution.stdout or ""
@@ -131,7 +131,7 @@ class FunctionJudgeService:
         lines = stdout.splitlines()
 
         json_line = None
-        print(lines)
+        # print(lines)
 
         for line in reversed(lines):
 

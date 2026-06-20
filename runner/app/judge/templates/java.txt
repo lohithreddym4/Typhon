@@ -1,5 +1,7 @@
 import java.util.*;
 import java.lang.reflect.*;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 
 {{SOLUTION_CODE}}
 
@@ -868,7 +870,7 @@ public class Main {
             testCases.add(tc);
         }
 
-        Solution solution = new Solution();
+Solution solution = new Solution();
         List<Method> candidates = new ArrayList<>();
 
         for (Method method : Solution.class.getDeclaredMethods()) {
@@ -887,9 +889,18 @@ public class Main {
 
         List<Map<String, Object>> results = new ArrayList<>();
 
+        PrintStream originalOut = System.out;
+        PrintStream originalErr = System.err;
+
         for (TestCase testCase : testCases) {
 
             Map<String, Object> result = new HashMap<>();
+
+            ByteArrayOutputStream outBuffer = new ByteArrayOutputStream();
+            ByteArrayOutputStream errBuffer = new ByteArrayOutputStream();
+
+            PrintStream outCapture = new PrintStream(outBuffer, true);
+            PrintStream errCapture = new PrintStream(errBuffer, true);
 
             try {
 
@@ -959,12 +970,25 @@ public class Main {
                         ? null
                         : solution;
 
-                Object actual = selected.invoke(receiver, invokeArgs);
+                Object actual;
+
+                System.setOut(outCapture);
+                System.setErr(errCapture);
+
+                try {
+                    actual = selected.invoke(receiver, invokeArgs);
+                } finally {
+                    System.setOut(originalOut);
+                    System.setErr(originalErr);
+                }
 
                 result.put("success", true);
                 result.put("actual", convertOutput(actual));
 
             } catch (Exception e) {
+
+                System.setOut(originalOut);
+                System.setErr(originalErr);
 
                 Throwable cause =
                     (e instanceof InvocationTargetException &&
@@ -974,6 +998,14 @@ public class Main {
 
                 result.put("success", false);
                 result.put("error", cause.toString());
+
+            } finally {
+
+                outCapture.flush();
+                errCapture.flush();
+
+                result.put("stdout", outBuffer.toString());
+                result.put("stderr", errBuffer.toString());
             }
 
             results.add(result);
