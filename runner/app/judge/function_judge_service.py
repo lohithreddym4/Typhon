@@ -77,7 +77,7 @@ class FunctionJudgeService:
         judge_elapsed = (
             time.perf_counter() - judge_start
         ) * 1000
-
+        print(execution)
         if execution.timed_out:
 
             return JudgeResult(
@@ -93,7 +93,8 @@ class FunctionJudgeService:
             )
 
         if execution.exit_code != 0:
-
+            print("Lohith")
+            
             return JudgeResult(
                 verdict=Verdict.RUNTIME_ERROR,
                 stderr=execution.stderr,
@@ -106,6 +107,7 @@ class FunctionJudgeService:
                 ),
                 results=[]
             )
+        
 
         # print("RAW OUTPUT:")
 
@@ -146,7 +148,6 @@ class FunctionJudgeService:
             
 
         if json_line is None:
-
             return JudgeResult(
                 verdict=Verdict.RUNTIME_ERROR,
                 stderr=(

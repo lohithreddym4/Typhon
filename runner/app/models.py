@@ -111,6 +111,8 @@ class JudgeResult(BaseModel):
 
     results: list[TestCaseResult]
 
+    stderr: str = ""
+
 
 class JudgeSubmission(BaseModel):
 
